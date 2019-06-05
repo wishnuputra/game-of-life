@@ -1,6 +1,27 @@
-// This is the CPP file you will edit and turn in.
-// Also remove these comments here and add your own.
-// TODO: remove this comment header!
+/*
+ * Title: Game Of Life
+ * File: life.cpp
+ * Author: Wishnuputra Dhanu
+ * Date: 5 June 2019
+ * ---------------------------------------------------------------
+ * This file contain the main program for running Game of Life.
+ * The simulation of the Game of Life originally conceived by
+ * the British mathematician J. H. Conway in 1970. The game
+ * simulates the life cycle of bacteria using two dimensional
+ * grid.
+ *
+ * The simulation start with an initial pattern of cells on
+ * the grid. The user type in the filename of the pattern.
+ * Then convert the pattern into grid object. Consequently it
+ * computes successive generations of cells according to
+ * following rules:
+ *
+ * - A cell with 1 or fewer neighbors dies.
+ * - Locations with 2 neighbors remain stable.
+ * - Locations with 3 neighbors will create life.
+ * - A cell with 4 or more neighbors dies."
+ *
+ */
 
 #include <cctype>
 #include <cmath>
@@ -19,19 +40,23 @@ using namespace std;
 
 void welcomeMessage();
 Grid<char> readFileInput();
-void printGrid(Grid<char> &grid);
-void nextGeneration(Grid<char> &grid);
-void tickLife(Grid<char> &grid);
-void animateLife(Grid<char> &grid);
-int countNeighbors(Grid<char> &grid, int r, int c);
+void printGrid(Grid<char> &grid, LifeGUI &gui);
+void nextGeneration(Grid<char> &grid, LifeGUI &gui);
+void tickLife(Grid<char> &grid, LifeGUI &gui);
+void animateLife(Grid<char> &grid, LifeGUI &gui);
+int countCells(Grid<char> &grid, int r, int c);
 void updateGrid(Grid<char> &grid);
+void printConsoleCleared();
+void printEqualSign(int num);
 
 int main() {
+    LifeGUI gui;
     welcomeMessage();
     Grid<char> grid = readFileInput();
-    printGrid(grid);
-
-    nextGeneration(grid);
+    gui.resize(grid.nRows, grid.nCols);
+    printGrid(grid, gui);
+    //drawGraphics(grid,gui);
+    nextGeneration(grid, gui);
 
     cout << "Have a nice Life!" << endl;
     return 0;
@@ -89,23 +114,31 @@ Grid<char> readFileInput() {
  * This method will print the grid elements for each
  * rows and columns.
  */
-void printGrid(Grid<char> &grid) {
+void printGrid(Grid<char> &grid, LifeGUI &gui) {
     for (int r = 0; r < grid.nRows; r++) {
         for (int c = 0; c < grid.nCols; c++) {
-            cout << grid[r][c];
+            char ch = grid[r][c];
+            //cout << grid[r][c];
+            gui.drawCell(r, c, ch == 'X');
         }
-        cout << endl;
+        //cout << endl;
     }
 }
 
-void nextGeneration(Grid<char> &grid) {
+/**
+ * Method: nextGeneration
+ * -----------------------
+ * Update the grid from one generation to the
+ * next generation.
+ */
+void nextGeneration(Grid<char> &grid, LifeGUI &gui) {
     string nextAction;
     while (true) {
          nextAction = toLowerCase(getLine("a)nimate, t)ick, q)uit? "));
          if (nextAction == "a") {
-              animateLife(grid);
+              animateLife(grid, gui);
          } else if (nextAction == "t") {
-              tickLife(grid);
+              tickLife(grid, gui);
          } else if (nextAction == "q") {
              break;
          } else {
@@ -114,31 +147,53 @@ void nextGeneration(Grid<char> &grid) {
      }
 }
 
-void tickLife(Grid<char> &grid) {
-    int neighbors;
+/**
+ * Method: tickLife
+ * -----------------
+ * This method will proceed to the next generation by one step.
+ */
+void tickLife(Grid<char> &grid, LifeGUI &gui) {
+    int cells;
+    Grid<char> newGrid = grid;
     for (int r = 0; r < grid.nRows; r++) {
         for (int c = 0; c < grid.nCols; c++){
             char ch = grid[r][c];
-            neighbors = countNeighbors(grid, r, c);
+            cells = countCells(grid, r, c);
             //cout << "Grid[" << r << "][" << c << "] : " << neighbors << endl;
-            if (neighbors >= 4 && ch == 'X') {
-                grid[r][c] = 'x';
-            } else if (neighbors == 3 && ch == '-') {
-                grid[r][c] = '+';
-            } else if (neighbors <= 2 && ch == 'X') {
-                grid[r][c] = 'x';
-            }
+            if (cells <= 2 && ch == 'X')
+                newGrid[r][c] = '-';
+            if (cells == 3 && ch == '-')
+                newGrid[r][c] = 'X';
+            if (cells >= 5 && ch == 'X')
+                newGrid[r][c] = '-';
         }
     }
-    updateGrid(grid);
-    printGrid(grid);
+    grid = newGrid;
+    printGrid(grid, gui);
 }
 
-void animateLife(Grid<char> &grid) {
-
+void animateLife(Grid<char> &grid, LifeGUI &gui) {
+    int numFrame = getInteger("How many frames? ");
+    for (int i = 0; i < numFrame; i++) {
+        tickLife(grid, gui);
+        //printConsoleCleared();
+    }
 }
 
-int countNeighbors(Grid<char> &grid, int i, int j) {
+/**
+ * Method: countCells
+ * ---------------------------------------------------
+ * This method will count the number of cells present
+ * inside 3x3 area.
+ * ---------------------------------------------------
+ * Input parameter:
+ * grid: the grid of the colony.
+ * i: the row index when this method is called.
+ * j: the column index when this method is called.
+ * ---------------------------------------------------
+ * --> return : number of cells inside 3x3 area.
+ */
+int countCells(Grid<char> &grid, int i, int j) {
     int counter = 0;
     for (int r = i - 1; r <= i + 1; r++) {
         for (int c = j - 1; c <= j + 1; c++) {
@@ -152,17 +207,27 @@ int countNeighbors(Grid<char> &grid, int i, int j) {
     return counter;
 }
 
-void updateGrid(Grid<char> &grid) {
-    for (int r = 0; r < grid.numRows(); r ++) {
-        for (int c = 0; c < grid.numCols(); c++) {
-            char ch = grid[r][c];
-            if (ch == 'x')
-                grid[r][c] = '-';
-            if (ch == '+')
-                grid[r][c] = 'X';
-        }
-    }
+/**
+ * Method: printConsoleCleared
+ * ----------------------------
+ * This method will print the text "console cleared"
+ * at the end of the grid.
+ */
+void printConsoleCleared() {
+    printEqualSign(20);
+    cout << " (console cleared) ";
+    printEqualSign(20);
+    cout << endl;
 }
 
-
+/**
+ * Method: printEqualSign
+ * -----------------------
+ * Print n number of equal signs
+ */
+void printEqualSign(int n) {
+    for (int i = 0; i < n; i++) {
+        cout << "=";
+    }
+}
 
