@@ -19,15 +19,19 @@ using namespace std;
 
 void welcomeMessage();
 Grid<char> readFileInput();
-void printGrid(Grid<char>);
-void nextGeneration();
+void printGrid(Grid<char> &grid);
+void nextGeneration(Grid<char> &grid);
+void tickLife(Grid<char> &grid);
+void animateLife(Grid<char> &grid);
+int countNeighbors(Grid<char> &grid, int r, int c);
+void updateGrid(Grid<char> &grid);
 
 int main() {
     welcomeMessage();
     Grid<char> grid = readFileInput();
     printGrid(grid);
 
-    nextGeneration();
+    nextGeneration(grid);
 
     cout << "Have a nice Life!" << endl;
     return 0;
@@ -63,15 +67,15 @@ Grid<char> readFileInput() {
     // obtaining number of rows and columns
     string line;
     getline(input, line);
-    int row = stringToInteger(line);
+    int numRow = stringToInteger(line);
     getline(input, line);
-    int col = stringToInteger(line);
+    int numCol = stringToInteger(line);
 
     // creating grid object
-    Grid<char> grid(row, col);
-    for (int r = 0; r < row; r++) {
+    Grid<char> grid(numRow, numCol);
+    for (int r = 0; r < numRow; r++) {
         getline(input, line);
-        for (int c = 0; c < col; c++) {
+        for (int c = 0; c < numCol; c++) {
             grid[r][c] = line[c];
         }
     }
@@ -85,7 +89,7 @@ Grid<char> readFileInput() {
  * This method will print the grid elements for each
  * rows and columns.
  */
-void printGrid(Grid<char> grid) {
+void printGrid(Grid<char> &grid) {
     for (int r = 0; r < grid.nRows; r++) {
         for (int c = 0; c < grid.nCols; c++) {
             cout << grid[r][c];
@@ -94,21 +98,71 @@ void printGrid(Grid<char> grid) {
     }
 }
 
-void nextGeneration() {
-     while (true) {
-         string next = getLine("a)nimate, t)ick, q)uit? ");
-         if(next == "a" || next == "t" || next == "q") {
+void nextGeneration(Grid<char> &grid) {
+    string nextAction;
+    while (true) {
+         nextAction = toLowerCase(getLine("a)nimate, t)ick, q)uit? "));
+         if (nextAction == "a") {
+              animateLife(grid);
+         } else if (nextAction == "t") {
+              tickLife(grid);
+         } else if (nextAction == "q") {
              break;
+         } else {
+             cout << "Invalid choice; please try again." << endl;
          }
-         cout << "Invalid choice; please try again." << endl;
      }
+}
 
-//     if (next == "a") {
+void tickLife(Grid<char> &grid) {
+    int neighbors;
+    for (int r = 0; r < grid.nRows; r++) {
+        for (int c = 0; c < grid.nCols; c++){
+            char ch = grid[r][c];
+            neighbors = countNeighbors(grid, r, c);
+            //cout << "Grid[" << r << "][" << c << "] : " << neighbors << endl;
+            if (neighbors >= 4 && ch == 'X') {
+                grid[r][c] = 'x';
+            } else if (neighbors == 3 && ch == '-') {
+                grid[r][c] = '+';
+            } else if (neighbors <= 2 && ch == 'X') {
+                grid[r][c] = 'x';
+            }
+        }
+    }
+    updateGrid(grid);
+    printGrid(grid);
+}
 
-//     } else if (next = "t") {
-
-//     } else if (next = "q") {
-
-//     }
+void animateLife(Grid<char> &grid) {
 
 }
+
+int countNeighbors(Grid<char> &grid, int i, int j) {
+    int counter = 0;
+    for (int r = i - 1; r <= i + 1; r++) {
+        for (int c = j - 1; c <= j + 1; c++) {
+            if (grid.inBounds(r, c)) {
+                char ch = grid[r][c];
+                if (ch == 'X' || ch == 'x')
+                    counter++;
+            }
+        }
+    }
+    return counter;
+}
+
+void updateGrid(Grid<char> &grid) {
+    for (int r = 0; r < grid.numRows(); r ++) {
+        for (int c = 0; c < grid.numCols(); c++) {
+            char ch = grid[r][c];
+            if (ch == 'x')
+                grid[r][c] = '-';
+            if (ch == '+')
+                grid[r][c] = 'X';
+        }
+    }
+}
+
+
+
