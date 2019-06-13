@@ -1,3 +1,8 @@
+
+-----------------------------------------------------------
+					GAME OF LIFE
+-----------------------------------------------------------
+
 This file contain the main program for running Game of Life.
 
 The simulation of the Game of Life originally conceived by
