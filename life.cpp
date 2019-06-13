@@ -19,7 +19,7 @@
  * - A cell with 1 or fewer neighbors dies.
  * - Locations with 2 neighbors remain stable.
  * - Locations with 3 neighbors will create life.
- * - A cell with 4 or more neighbors dies."
+ * - A cell with 4 or more neighbors dies.
  *
  */
 
